@@ -16,22 +16,30 @@ staggered_synthestimate <- function(
   tdf <- data_ref$data_ref
   break_points <- data_ref$break_points
 
-  synthd_att_search <- function(tdf, time_eval, covariates = data_ref$covariates, cov_method = "optimized"){
+  synthd_att_search <- function(tdf, time_eval, covariates = data_ref$covariates, cov_method = cov_method){
     df_y <- tdf |> dplyr::filter(tyear %in% c(0, time_eval))
 
     N1 <- df_y |> dplyr::filter(treated == 1) |> dplyr::pull(unit) |> unique() |> length()
     T1 <- (tdf |> dplyr::pull(time) |> max()) - time_eval + 1
     tau_hat_wt <-  N1 * T1
 
-    from_tdf_matrix <- function(values_wider = "outcome", df = df_y) {
+    from_tdf_matrix <- function(values_wider = "outcome", df = df_y, units = F) {
       vars <- c("time", "unit", values_wider)
-      df_y |> dplyr::select(dplyr::all_of(vars)) |> tidyr::pivot_wider(names_from = time, values_from = values_wider) |>
+      dataframe <-
+        df_y |> dplyr::select(dplyr::all_of(vars)) |> tidyr::pivot_wider(names_from = time, values_from = values_wider)
+      matrix <- dataframe |>
         dplyr::select(!unit) |> as.matrix()
+      uniqid <- dataframe |> dplyr::pull(unit) |> unique()
+      if(units){
+        return(list(matrix, uniqid))
+      }
+      return(matrix)
     }
 
     # Y = df_y |> dplyr::select(time, unit, outcome) |> tidyr::pivot_wider(names_from = time, values_from = outcome) |>
       # dplyr::select(!unit) |> as.matrix()
-    Y <- from_tdf_matrix()
+    y_omega <- from_tdf_matrix(units = T)
+    Y <- y_omega[[1]]
 
     N_y <- nrow(Y)
     T_y <- ncol(Y)
@@ -100,13 +108,15 @@ staggered_synthestimate <- function(
       X_beta <- contract3(X, weights_sdid$beta)
       # print(dplyr::glimpse(weights_sdid))
     }
-
-    tau <- t(c(-weights_sdid$omega, rep(1 / N1, N1))) %*% (Y - X_beta) %*% c(-weights_sdid$lambda, rep(1 / T1, T1))
+    Y_beta <- Y - X_beta
+    # tau <- t(c(-weights_sdid$omega, rep(1 / N1, N1))) %*% (Y_beta) %*% c(-weights_sdid$lambda, rep(1 / T1, T1))
+    tau <- att_mult(Y_beta, weights_sdid$omega, weights_sdid$lambda, N1, T1)
 
     info_att <- tibble::tibble(
       "time" = time_eval,
       "tau" = as.double(tau), "tau_wt" = tau_hat_wt, "N0" = N0, "T0" = T0, "N1" = N1, "T1" = T1,
-      "weights_sdid" = list(weights_sdid)
+      "weights_sdid" = list(weights_sdid),
+      "Y_beta" = list(Y_beta)
       )
 
 
@@ -121,14 +131,6 @@ staggered_synthestimate <- function(
     weighted_tau = tau * tau_wt / sum(tau_wt)
   ) |> dplyr::relocate(weighted_tau, .after = tau_wt)
   att <- sum(att_table$weighted_tau)
-  return(list(att_estimate = att, att_table = att_table))
+  return(list(att_estimate = att, att_table = att_table, data_ref = tdf))
 }
-
-staggered_synthestimate(quota() |> tidyr::drop_na(lngdp), "country", "year", "quota", "womparl", "lngdp")
-
-
-staggered_synthestimate(california(), "State", "Year", "treated", "PacksPerCapita")
-
-
-
 
