@@ -62,7 +62,7 @@ estimate$att_table
 ## Plots
 
 ### Trajectory
-
+ 
 `plot_estimate$time_{time}`
 
 ```{r estimate, eval = T}
