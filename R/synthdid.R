@@ -1,12 +1,31 @@
-librarian::shelf(here, purrr)
-
-ref_code <- c("get_data.r", "solver.r", "utils.r")
-
-here("R", ref_code) |> map(source)
 
 
+#' Staggered Synthetic Difference-in-Difference Estimation
+#'
+#' @param data tibble::tibble()
+#' @param unit character: Column number for variable that identifies each unit
+#' @param time character: Column number for variable indicating time period.
+#' @param treated character:  Column number for 0/1 variable. = 1 if unit is
+#'   treated in that period
+#' @param outcome character: Column for outcome variable
+#' @param covariates vec_character: Columns for covariates
+#' @param cov_method refers original package
+#' @param weights_sdid refers original package
+#' @param update_lambda refers original package
+#' @param update_omega refers original package
+#' @param lambda_intercept refers original package
+#' @param omega_intercept refers original package
+#' @param max_iter_pre_sparsify refers original package
+#' @param max_iter refers original package
+#' @param sparsify refers original package
+#'
+#' @return Estimate Synthdid for staggered contexts, with a simple covariates
+#' implementation method, returning the information in a list, ATT_staggered,
+#' time-specific information, and others.
+#' @export
+#'
 
-staggered_synthestimate <- function(
+staggered_synth_estimate <- function(
     data, unit, time, treated, outcome, covariates = c(),  weights_sdid = list(lambda=NULL, omega=NULL),
     update_lambda = is.null(weights_sdid$lambda), update_omega = is.null(weights_sdid$omega),
     cov_method = "optimized", lambda_intercept = T, omega_intercept = T, max_iter_pre_sparsify = 100,
@@ -40,6 +59,7 @@ staggered_synthestimate <- function(
       # dplyr::select(!unit) |> as.matrix()
     y_omega <- from_tdf_matrix(units = T)
     Y <- y_omega[[1]]
+    units_y <- y_omega[[2]]
 
     N_y <- nrow(Y)
     T_y <- ncol(Y)
@@ -93,8 +113,8 @@ staggered_synthestimate <- function(
       X_beta <- 0
     } else if(length(covariates) > 0)
       {
-      X <- map(covariates, from_tdf_matrix)
-      Xc <- X |> map(collapsed_form, N0, T0)
+      X <- purrr::map(covariates, from_tdf_matrix)
+      Xc <- X |> purrrmap(collapsed_form, N0, T0)
       # print(X_covariates |> map(dim) )
       # print(dim(Yc))
       weights_sdid = sc.weight.fw.covariates(
@@ -109,14 +129,15 @@ staggered_synthestimate <- function(
       # print(dplyr::glimpse(weights_sdid))
     }
     Y_beta <- Y - X_beta
-    # tau <- t(c(-weights_sdid$omega, rep(1 / N1, N1))) %*% (Y_beta) %*% c(-weights_sdid$lambda, rep(1 / T1, T1))
-    tau <- att_mult(Y_beta, weights_sdid$omega, weights_sdid$lambda, N1, T1)
+    tau <- t(c(-weights_sdid$omega, rep(1 / N1, N1))) %*% (Y_beta) %*% c(-weights_sdid$lambda, rep(1 / T1, T1))
+    # tau <- att_mult(Y_beta, weights_sdid$omega, weights_sdid$lambda, N1, T1)
 
     info_att <- tibble::tibble(
       "time" = time_eval,
       "tau" = as.double(tau), "tau_wt" = tau_hat_wt, "N0" = N0, "T0" = T0, "N1" = N1, "T1" = T1,
       "weights_sdid" = list(weights_sdid),
-      "Y_beta" = list(Y_beta)
+      "Y_beta" = list(Y_beta),
+      "Units" = list(units_y)
       )
 
 

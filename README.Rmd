@@ -1,0 +1,79 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-",
+  dpi = 300
+)
+```
+
+# *Staggered* Synthdid (`Ssynthdid`)
+
+## Overview 
+
+Adaptation of the [Synthdid](https://github.com/synth-inference/synthdid/tree/master) library for staggered panel data, with ease of entering covariates.
+
+## Installation
+
+```r
+# Development version from GitHUB
+# install.remotes("remotes")
+remotes::install_github("tjhon/ssynthdid")
+```
+
+## Usage
+
+```{r}
+library(Ssynthdid)
+library(ggplot2)
+```
+
+
+### Example data `Quota`
+
+```{r}
+quota_df <- quota()
+print(head(quota_df))
+estimate <- staggered_synth_estimate(quota_df, "country", "year", "quota", "womparl")
+```
+
+```{r}
+estimate |> dplyr::glimpse()
+```
+
+`att_estimate`
+
+```{r}
+estimate$att_estimate
+```
+
+Time information
+
+```{r}
+estimate$att_table
+```
+
+## Plots
+
+### Trajectory
+
+`plot_estimate$time_{time}`
+
+```{r eval = F}
+plt_estimate <- estimate |> ssynthdid_plot()
+plt_estimate$time_2000
+```
+
+### Weights
+
+`plot_estimate$time_{time}`
+
+```{r eval=F}
+plt_estimate_wg <- estimate |> ssynthdid_units_plot()
+plt_estimate_wg$time_2000
+```

@@ -1,0 +1,27 @@
+Package: Ssynthdid
+Title: Staggered Synthetic Difference-in-Difference Estimation
+Version: 0.1.0.0
+Authors@R: 
+    person("Jhon", "Flores Rojas", , "fr.jhonk@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "NONE"))
+Description: Implementation of Synthetic Difference-in-Differences estimation for staggered treatment adoption.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.0.0
+Depends:
+  R (>= 4.1)
+Imports: 
+    dplyr (>= 1.0.1),
+    forcats,
+    ggplot2 (>= 3.3.0),
+    magrittr,
+    purrr (>= 1.0.1),
+    readr,
+    rlang,
+    tibble (>= 3.0.0),
+    tidyr (>= 1.0.0)
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

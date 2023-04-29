@@ -1,0 +1,54 @@
+---
+title: "California_example"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{California_example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(Ssynthdid)
+```
+
+## Data
+
+```{r}
+cal <- california()
+head(cal)
+```
+## Estimation
+
+```{r}
+est_cal <- staggered_synth_estimate(cal, unit = "State", time = "Year", treated = "treated", outcome = "PacksPerCapita")
+```
+
+### ATT estimate
+
+```{r}
+est_cal$att_estimate
+```
+
+### Info `panel_matrices` -> original package result
+
+```{r}
+est_cal$att_table
+```
+
+- time: adoption time
+- tau: att for adoption time
+- ..
+- N0: the number of control units
+- T0: Number of time periods before treatment
+- weights_sdid: weights estimate
+- Y_beta: data pivoted for this time
+- Units: Vector of units (rownames Y_beta)
+
+
