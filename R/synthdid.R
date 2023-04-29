@@ -25,7 +25,7 @@
 #' @export
 #'
 
-staggered_synth_estimate <- function(
+ssynth_estimate <- function(
     data, unit, time, treated, outcome, covariates = c(),  weights_sdid = list(lambda=NULL, omega=NULL),
     update_lambda = is.null(weights_sdid$lambda), update_omega = is.null(weights_sdid$omega),
     cov_method = "optimized", lambda_intercept = T, omega_intercept = T, max_iter_pre_sparsify = 100,

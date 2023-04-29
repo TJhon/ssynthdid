@@ -38,7 +38,7 @@ print(head(quota_df))
 #> 4    5.70   4.14 Albania  1993     0  8.14
 #> 5    5.70   3.89 Albania  1994     0  8.23
 #> 6    5.70   3.97 Albania  1995     0  8.36
-estimate <- staggered_synth_estimate(quota_df, "country", "year", "quota", "womparl")
+estimate <- ssynth_estimate(quota_df, "country", "year", "quota", "womparl")
 ```
 
 ``` r

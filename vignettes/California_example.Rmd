@@ -27,7 +27,7 @@ head(cal)
 ## Estimation
 
 ```{r}
-est_cal <- staggered_synth_estimate(cal, unit = "State", time = "Year", treated = "treated", outcome = "PacksPerCapita")
+est_cal <- ssynth_estimate(cal, unit = "State", time = "Year", treated = "treated", outcome = "PacksPerCapita")
 ```
 
 ### ATT estimate

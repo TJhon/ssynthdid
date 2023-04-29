@@ -40,7 +40,7 @@ library(ggplot2)
 ```{r}
 quota_df <- quota()
 print(head(quota_df))
-estimate <- staggered_synth_estimate(quota_df, "country", "year", "quota", "womparl")
+estimate <- ssynth_estimate(quota_df, "country", "year", "quota", "womparl")
 ```
 
 ```{r}

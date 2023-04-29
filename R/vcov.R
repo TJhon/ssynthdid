@@ -79,7 +79,7 @@ bootstrap_se <- function(estimate, n_reps = 50){
 
     sampled_df <- purrr::map_df(1:length(sample_unit), sample_to_df)
 
-    staggered_synth_estimate(sampled_df, "unit", "time", "treatment", "outcome")$att_estimate
+    ssynth_estimate(sampled_df, "unit", "time", "treatment", "outcome")$att_estimate
   }
 
   att_bt = purrr::map_dbl(1:n_reps, theta_bt, .progress = T)
@@ -121,7 +121,7 @@ placebo_se <- function(estimate, n_reps = 50){
       dplyr::mutate(tunit = max(treatment)) |>
       dplyr::ungroup()
 
-    att <- staggered_synth_estimate(aux_data, "unit", "time", "treatment", "outcome")$att_estimate
+    att <- ssynth_estimate(aux_data, "unit", "time", "treatment", "outcome")$att_estimate
     return(att)
   }
 
