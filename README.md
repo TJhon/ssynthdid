@@ -102,6 +102,8 @@ plt_estimate <- estimate |> ssynthdid_plot()
 plt_estimate$time_2000
 ```
 
+![](man/figures/README-estimate-1.png)<!-- -->
+
 ### Weights
 
 `plot_estimate$time_{time}`
@@ -110,3 +112,5 @@ plt_estimate$time_2000
 plt_estimate_wg <- estimate |> ssynthdid_units_plot()
 plt_estimate_wg$time_2000
 ```
+
+![](man/figures/README-weights-1.png)<!-- -->

@@ -8,7 +8,8 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "README-",
-  dpi = 300
+  dpi = 300,
+  fig.path = "man/figures/README-"
 )
 ```
 
@@ -64,7 +65,7 @@ estimate$att_table
 
 `plot_estimate$time_{time}`
 
-```{r eval = F}
+```{r estimate, eval = T}
 plt_estimate <- estimate |> ssynthdid_plot()
 plt_estimate$time_2000
 ```
@@ -73,7 +74,7 @@ plt_estimate$time_2000
 
 `plot_estimate$time_{time}`
 
-```{r eval=F}
+```{r weights,  eval=T}
 plt_estimate_wg <- estimate |> ssynthdid_units_plot()
 plt_estimate_wg$time_2000
 ```
