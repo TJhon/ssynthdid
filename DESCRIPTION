@@ -1,6 +1,6 @@
-Package: Ssynthdid
+Package: ssynthdid
 Title: Staggered Synthetic Difference-in-Difference Estimation
-Version: 0.1.0.0
+Version: 0.1.1.0
 Authors@R: 
     person("Jhon", "Flores Rojas", , "fr.jhonk@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0007-0621-1625"))
