@@ -32,10 +32,10 @@ ssynth_estimate <- function(
     max_iter = 1e4, sparsify = sparsify_function
                                     ){
   data_ref <- data_setup(data, unit, time, treated, outcome, covariates)
-  tdf <- data_ref$data_ref
+  data_tdf <- data_ref$data_ref
   break_points <- data_ref$break_points
 
-  synthd_att_search <- function(tdf, time_eval, covariates = data_ref$covariates, cov_method = cov_method){
+  synthd_att_search <- function(tdf, time_eval, covariates, cov_method){
     df_y <- tdf |> dplyr::filter(tyear %in% c(0, time_eval))
 
     N1 <- df_y |> dplyr::filter(treated == 1) |> dplyr::pull(unit) |> unique() |> length()
@@ -55,8 +55,7 @@ ssynth_estimate <- function(
       return(matrix)
     }
 
-    # Y = df_y |> dplyr::select(time, unit, outcome) |> tidyr::pivot_wider(names_from = time, values_from = outcome) |>
-      # dplyr::select(!unit) |> as.matrix()
+
     y_omega <- from_tdf_matrix(units = T)
     Y <- y_omega[[1]]
     units_y <- y_omega[[2]]
@@ -65,9 +64,9 @@ ssynth_estimate <- function(
     T_y <- ncol(Y)
     N0 <- N_y - N1
     T0 <- T_y - T1
-
-    # Params from synthdid_estimate
-
+    #
+    # # Params from synthdid_estimate
+    #
     noise_level <- sd(apply(Y[1:N0, 1:T0], 1, diff))
     eta_omega <- ((N_y - N0) * (T_y - T0))^(1/4)
     eta_lambda <-  1e-6
@@ -77,8 +76,7 @@ ssynth_estimate <- function(
 
     Yc <- collapsed_form(Y, N0, T0)
 
-    ### No covariates
-    if(is.null(covariates) || cov_method == "projected"){
+    no_cov_method <- function(){
       weights_sdid <- list()
       weights_sdid$vals <- weights_sdid$lambda_vals <- weights_sdid$omega_vals <- NULL
 
@@ -110,13 +108,12 @@ ssynth_estimate <- function(
         if(is.null(weights_sdid$vals)) {weights_sdid$vals <- omega_opt$vals}
         else{weights_sdid$vals <- pairwise_sum_decreasing(weights_sdid$vals, omega_opt$vals)}
       }
-      X_beta <- 0
-    } else if(length(covariates) > 0)
+      return(weights_sdid)
+    }
+    if(length(covariates) > 0)
       {
       X <- purrr::map(covariates, from_tdf_matrix)
-      Xc <- X |> purrrmap(collapsed_form, N0, T0)
-      # print(X_covariates |> map(dim) )
-      # print(dim(Yc))
+      Xc <- X |> purrr::map(collapsed_form, N0, T0)
       weights_sdid = sc.weight.fw.covariates(
         Yc, Xc, zeta.lambda = zeta_lambda, zeta.omega = zeta_omega,
         lambda.intercept = lambda_intercept, omega.intercept = omega_intercept,
@@ -126,11 +123,13 @@ ssynth_estimate <- function(
       names(info_beta) <- paste0("beta_", covariates)
       info_beta <- as.matrix(info_beta) |> t() |> tibble::as_tibble(.name_repair = "unique")
       X_beta <- contract3(X, weights_sdid$beta)
-      # print(dplyr::glimpse(weights_sdid))
+    }
+    if(length(covariates) == 0 || cov_method == "projected"){
+      weights_sdid <- no_cov_method()
+      X_beta <- 0
     }
     Y_beta <- Y - X_beta
     tau <- t(c(-weights_sdid$omega, rep(1 / N1, N1))) %*% (Y_beta) %*% c(-weights_sdid$lambda, rep(1 / T1, T1))
-    # tau <- att_mult(Y_beta, weights_sdid$omega, weights_sdid$lambda, N1, T1)
 
     info_att <- tibble::tibble(
       "time" = time_eval,
@@ -141,17 +140,19 @@ ssynth_estimate <- function(
       )
 
 
-    if(!is.null(covariates)){
-      info_att <- info_att |> dplyr::bind_cols(info_beta)
-    }
+    # if(!is.null(covariates)){
+    #   info_att <- info_att |> dplyr::bind_cols(info_beta)
+    # }
     return(info_att)
   }
 
-  att_table <- purrr::map_df(break_points, synthd_att_search, tdf = tdf)
+  att_table <-
+    purrr::map_df(break_points, synthd_att_search, tdf = data_tdf, covariates = data_ref$covariates, cov_method = cov_method, .progress = T)
+  att_table
   att_table <- att_table |> dplyr::mutate(
     weighted_tau = tau * tau_wt / sum(tau_wt)
   ) |> dplyr::relocate(weighted_tau, .after = tau_wt)
   att <- sum(att_table$weighted_tau)
-  return(list(att_estimate = att, att_table = att_table, data_ref = tdf))
+  return(list(att_estimate = att, att_table = att_table, data_ref = data_tdf))
 }
 
